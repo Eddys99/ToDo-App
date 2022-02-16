@@ -5,10 +5,14 @@ const TaskModel = require("../database/models/todo");
 router.post("/", async (req, res) => {
     try {
         const createTask = new TaskModel({
-            task: req.body.task
-        })
+            task: req.body.task,
+            responsibleWorkers: req.body.workers,
+            tags: [{
+                difficulty: req.body.difficulty
+            }]
+        });
         await createTask.save();
-        res.send(createTask);
+        res.redirect("/read-task");
     } catch(err) {
         console.log(err);
         res.redirect("/create-task");

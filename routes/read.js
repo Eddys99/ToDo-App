@@ -8,7 +8,7 @@ router.get("/", async (req, res) => {
         res.send(tasks);
     } catch(err) {
         console.log(err);
-        res.redirect("/create-task");
+        res.redirect("/read-task");
     }
 });
 
