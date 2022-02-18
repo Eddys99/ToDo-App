@@ -2,17 +2,17 @@ require('./database/db_connection');
 const express = require('express');
 const bodyParser = require('body-parser');
 
-const listRouter = require("./routes/read");
-const createRouter = require("./routes/create");
-const updateRouter = require("./routes/update");
-const deleteRouter = require("./routes/delete");
+const listRouter = require("./src/routes/read");
+const createRouter = require("./src/routes/create");
+const updateRouter = require("./src/routes/update");
+const deleteRouter = require("./src/routes/delete");
 
 const app = express();
 app.use(bodyParser.json());
 
-app.use("/read-task", listRouter);
-app.use("/create-task", createRouter);
-app.use("/update-task", updateRouter);
-app.use("/delete-task", deleteRouter);
+app.use("/read", listRouter);
+app.use("/create", createRouter);
+app.use("/update", updateRouter);
+app.use("/delete", deleteRouter);
 
 app.listen(3000, () => console.log(`Server listening to port 3000`));

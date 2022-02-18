@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const TaskModel = require("../database/models/todo");
+const TaskModel = require("../models/taskSchema");
 
 router.get("/", async (req, res) => {
     try {
@@ -8,7 +8,7 @@ router.get("/", async (req, res) => {
         res.send(tasks);
     } catch(err) {
         console.log(err);
-        res.redirect("/read-task");
+        res.redirect("/read");
     }
 });
 

@@ -16,18 +16,27 @@ const Task = new Schema({
         type: [String],
         default: []
     },
-    
+
     tags: [{
         difficulty: { 
             type: String,
             default: "easy"
         },
         date: { 
-            type: String, 
+            type: Date, 
             default: Date.now 
         }
 
-    }]
+    }],
+    
+    countWorkers: {
+        type: Number
+    },
+
+    tagsCount: {
+        type: Number,
+        default: 1
+    }
 });
 
 module.exports = mongoose.model('task', Task);

@@ -1,21 +1,23 @@
 const express = require("express");
 const router = express.Router();
-const TaskModel = require("../database/models/todo");
+const TaskModel = require("../models/taskSchema");
 
 router.post("/", async (req, res) => {
     try {
+        let workersCounter = req.body.workers.length;
         const createTask = new TaskModel({
             task: req.body.task,
             responsibleWorkers: req.body.workers,
             tags: [{
                 difficulty: req.body.difficulty
-            }]
+            }],
+            countWorkers: workersCounter
         });
         await createTask.save();
-        res.redirect("/read-task");
+        res.redirect("/read");
     } catch(err) {
         console.log(err);
-        res.redirect("/create-task");
+        res.redirect("/read");
     }
 });
 
