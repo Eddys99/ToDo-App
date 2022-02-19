@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const create = require("../middlewares/create");
+const create = require("../controllers/create");
 
 router.post("/", create.task);
 

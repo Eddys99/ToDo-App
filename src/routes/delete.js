@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const remove = require("../middlewares/delete");
+const remove = require("../controllers/delete");
 
 router.delete("/:id", remove.task);
 
