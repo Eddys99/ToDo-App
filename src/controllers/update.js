@@ -2,9 +2,9 @@ const TaskModel = require("../models/taskSchema");
 
 async function task(req, res) {
     try {
-        let changeTaskName = { $set: { task: req.body.task }};
-        let id = { _id: req.params.id };
-        const updateTask = await TaskModel.updateOne(id, changeTaskName);
+        let query = { _id: req.params.id };
+        let update = { $set: { task: req.body.task }};
+        const updateTask = await TaskModel.updateOne(query, update);
         res.redirect("/read");
     } catch(err) {
         console.log(err);
@@ -14,12 +14,12 @@ async function task(req, res) {
 
 async function workers(req, res) {
     try {
-        let addWorkersToList = { $addToSet: { responsibleWorkers: { $each: req.body.workers }}};
-        let id = { _id: req.params.id };
-        const updateWorkers = await TaskModel.updateOne(id, addWorkersToList);
-        const getNumberOfWorkers = await TaskModel.findOne(id);
-        let newWorkersCounterValue = { $set: { countWorkers: getNumberOfWorkers.responsibleWorkers.length }};
-        const updateWorkersCounter = await TaskModel.updateOne(id, newWorkersCounterValue);
+        let query = { _id: req.params.id };
+        let update = { $addToSet: { responsibleWorkers: { $each: req.body.workers }}};
+        const updateWorkers = await TaskModel.updateOne(query, update);
+        const getNumberOfWorkers = await TaskModel.findOne(query);
+        update = { $set: { countWorkers: getNumberOfWorkers.responsibleWorkers.length }};
+        const updateWorkersCounter = await TaskModel.updateOne(query, update);
         res.redirect("/read");
     } catch(err) {
         console.log(err);
@@ -29,13 +29,13 @@ async function workers(req, res) {
 
 async function tags(req, res) {
     try {
-        let id = { _id: req.params.id };
-        let insertTagDifficulty = { $addToSet: { tags: { difficulty: req.body.diff }}};
-        let selectedField = { _id: req.params.id, 'tags.difficulty': { $ne: req.body.diff }};
-        const updateTags = await TaskModel.updateOne(selectedField, insertTagDifficulty);
-        const getTagsLength = await TaskModel.findOne(id);
-        let newTagsCounterValue = { $set: { tagsCount: getTagsLength.tags.length }};
-        const updateTagsCounter = await TaskModel.updateOne(id, newTagsCounterValue);
+        let update = { $addToSet: { tags: { difficulty: req.body.diff }}};
+        let query = { _id: req.params.id, 'tags.difficulty': { $ne: req.body.diff }};
+        const updateTags = await TaskModel.updateOne(query, update);
+        query = { _id: req.params.id };
+        const getTagsLength = await TaskModel.findOne(query);
+        update = { $set: { tagsCount: getTagsLength.tags.length }};
+        const updateTagsCounter = await TaskModel.updateOne(query, update);
         res.redirect("/read");
     } catch(err) {
         console.log(err);
@@ -45,9 +45,9 @@ async function tags(req, res) {
 
 async function markTaskAsDone(req, res) {
     try {
-        let id = { _id: req.params.id };
-        let updateParameter = { $set: { isDone: true }};
-        const markDone = await TaskModel.updateOne(id, updateParameter);
+        let query = { _id: req.params.id };
+        let update = { $set: { isDone: true }};
+        const markDone = await TaskModel.updateOne(query, update);
         res.redirect("/read");
     } catch(err) {
         console.log(err);
