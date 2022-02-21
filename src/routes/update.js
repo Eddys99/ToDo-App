@@ -10,4 +10,6 @@ router.put("/tags/:id", update.tags);
 
 router.put("/done/:id", update.markTaskAsDone);
 
+router.put("/soft-delete/:id", update.markAsDeleted);
+
 module.exports = router;

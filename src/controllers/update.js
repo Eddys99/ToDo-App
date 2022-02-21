@@ -55,9 +55,22 @@ async function markTaskAsDone(req, res) {
     }
 }
 
+async function markAsDeleted(req, res) {
+    try {
+        let query = { _id: req.params.id };
+        let update = { $set: { deleted: true }};
+        const softDelete = await TaskModel.updateOne(query, update);
+        res.redirect("/read");
+    } catch (err) {
+        console.log(err);
+        res.redirect("/read");
+    }
+}
+
 module.exports = {
     task,
     workers,
     tags,
-    markTaskAsDone
+    markTaskAsDone,
+    markAsDeleted
 }
