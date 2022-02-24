@@ -9,7 +9,8 @@ async function task(req, res) {
             tags: [{
                 difficulty: req.body.difficulty
             }],
-            countWorkers: workersCounter
+            countWorkers: workersCounter,
+            countWorkersV2: workersCounter
         });
         await createTask.save();
         res.redirect("/read");

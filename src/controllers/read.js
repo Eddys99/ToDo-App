@@ -76,6 +76,34 @@ async function mostAssignedTags(req, res) {
     }
 }
 
+async function mostAssignedWorkersV2(req, res) {
+    try {
+        const mostAssignedWorkersTask = await TaskModel.aggregate([
+            { $unwind : "$responsibleWorkers" },
+            { $group : { _id : "$_id", len : { $sum : 1 } } },
+            { $sort : { len : -1 } },
+        ]);
+        res.redirect("/read/" + mostAssignedWorkersTask[0]._id);
+    } catch(err) {
+        console.log(err);
+        res.send("No tasks.");
+    }
+}
+
+async function mostAssignedTagsV2(req, res) {
+    try {
+        const mostAssignetTags = await TaskModel.aggregate([
+            { $unwind : "$tags" },
+            { $group : { _id : "$_id", len : { $sum : 1 } } },
+            { $sort : { len : -1 } },
+        ]);
+        res.redirect("/read/" + mostAssignetTags[0]._id);
+    } catch(err) {
+        console.log(err);
+        res.send("No tasks.");
+    }
+}
+
 async function oneWorkerTasks(req, res) {
     try {
         let query = { responsibleWorkers: { $size: 1 }};
@@ -186,6 +214,72 @@ async function countTasksWithoutTags(req, res) {
     }
 }
 
+async function countCompletedTasksV2(req, res) {
+    try {
+        let filter = { isDone: true };
+        const numberOfCompletedTasks = await TaskModel.where(filter).countDocuments();
+        res.send("Completed tasks: " + numberOfCompletedTasks);
+    } catch(err) {
+        console.log(err);
+        res.send("No tasks yet.");
+    }
+}
+
+async function countUnfinishedTasksV2(req, res) {
+    try {
+        let filter = { isDone: false };
+        const numberOfUnfinishedTasks = await TaskModel.where(filter).countDocuments();
+        res.send("Unfinished tasks: " + numberOfUnfinishedTasks);
+    } catch(err) {
+        console.log(err);
+        res.send("No tasks yet.");
+    }
+}
+
+async function countTasksWithWorkersV2(req, res) {
+    try {
+        let filter = { 'responsibleWorkers.0': { $exists: true }};
+        const numberOfTasksWithWorkers = await TaskModel.where(filter).countDocuments();
+        res.send("Tasks that have workers: " + numberOfTasksWithWorkers);
+    } catch(err) {
+        console.log(err);
+        res.send("No tasks yet.");
+    }
+}
+
+async function countTasksWithoutWorkersV2(req, res) {
+    try {
+        let filter = { responsibleWorkers: { $size: 0 }};
+        const numberOfTasksWithoutWorkers = await TaskModel.where(filter).countDocuments();
+        res.send("Tasks that have no workers: " + numberOfTasksWithoutWorkers);
+    } catch(err) {
+        console.log(err);
+        res.send("No tasks yet.");
+    }
+}
+
+async function countTasksWithTagsV2(req, res) {
+    try {
+        let filter = { 'tags.0': { $exists: true }};
+        const numberOfTasksWithTags = await TaskModel.where(filter).countDocuments();
+        res.send("Tasks with tags: " + numberOfTasksWithTags);
+    } catch(err) {
+        console.log(err);
+        res.send("No tasks yet.");
+    }
+}
+
+async function countTasksWithoutTagsV2(req, res) {
+    try {
+        let filter = { tags: { $size: 0 }};
+        const numberOfTasksWithoutTags = await TaskModel.where(filter).countDocuments();
+        res.send("Tasks with tags: " + numberOfTasksWithoutTags);
+    } catch(err) {
+        console.log(err);
+        res.send("No tasks yet.");
+    }
+}
+
 async function sortAscByNumberOfWorkers(req, res) {
     try {
         let query = { countWorkers: 1 };
@@ -238,6 +332,8 @@ module.exports = {
     availableTasks,
     mostAssignedWorkers,
     mostAssignedTags,
+    mostAssignedWorkersV2,
+    mostAssignedTagsV2,
     oneWorkerTasks,
     multipleWorkersTasks,
     oneTagTasks,
@@ -251,5 +347,11 @@ module.exports = {
     sortAscByNumberOfWorkers,
     sortDescByNumberOfWorkers,
     sortAscByNumberOfTags,
-    sortDescByNumberOfTags
+    sortDescByNumberOfTags,
+    countCompletedTasksV2,
+    countUnfinishedTasksV2,
+    countTasksWithWorkersV2,
+    countTasksWithoutWorkersV2,
+    countTasksWithTagsV2,
+    countTasksWithoutTagsV2
 }

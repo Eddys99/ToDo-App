@@ -2,7 +2,7 @@ const TaskModel = require("../models/taskSchema");
 
 async function task(req, res) {
     try {
-        const deleteTask = await TaskModel.findByIdAndDelete(req.params.id);
+        await TaskModel.findByIdAndDelete(req.params.id);
         res.redirect("/read");
     } catch(err) {
         console.log(err);
@@ -14,10 +14,23 @@ async function workers(req, res) {
     try {
         let query = { _id: req.params.id };
         let update = { $pull: { responsibleWorkers: req.body.worker }};
-        const popWorker = await TaskModel.updateOne(query, update);
+        await TaskModel.updateOne(query, update);
         const getResWorkersNumber = await TaskModel.findOne(query);
         update = { $set: { countWorkers: getResWorkersNumber.responsibleWorkers.length }};
-        const updateWorkersCounter = await TaskModel.updateOne(query, update);
+        await TaskModel.updateOne(query, update);
+        res.redirect("/read");
+    } catch(err) {
+        console.log(err);
+        res.redirect("/read");
+    }
+}
+
+async function workersV2(req, res) {
+    try {
+        let query = { _id: req.params.id };
+        const getDocument = await TaskModel.findOne(query);
+        getDocument.removeWorker(req.body.worker);
+        getDocument.save();
         res.redirect("/read");
     } catch(err) {
         console.log(err);
@@ -29,10 +42,23 @@ async function tags(req, res) {
     try {
         let query = { _id: req.params.id };
         let update = { $pull: { tags: { difficulty: req.body.diff }}};
-        const removeTag = await TaskModel.updateOne(query, update);
+        await TaskModel.updateOne(query, update);
         const getTagsLength = await TaskModel.findOne(query);
         update = { $set: { tagsCount: getTagsLength.tags.length }};
-        const updateTagsCounter = await TaskModel.updateOne(query, update);
+        await TaskModel.updateOne(query, update);
+        res.redirect("/read");
+    } catch(err) {
+        console.log(err);
+        res.redirect("/read");
+    }
+}
+
+async function tagsV2(req, res) {
+    try {
+        let query = { _id: req.params.id };
+        const getDocument = await TaskModel.findOne(query);
+        getDocument.removeTag(req.body.diff);
+        getDocument.save();
         res.redirect("/read");
     } catch(err) {
         console.log(err);
@@ -43,5 +69,7 @@ async function tags(req, res) {
 module.exports = {
     task,
     workers,
-    tags
+    workersV2,
+    tags,
+    tagsV2
 }
