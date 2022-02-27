@@ -1,35 +1,27 @@
-const TaskModel = require("../models/taskSchema");
+const repoUpdate = require("../repository/update");
+const repoFind = require("../repository/find");
 
 async function task(req, res) {
     try {
-        let query = { _id: req.params.id };
-        let update = { $set: { task: req.body.task, updated_at: Date.now() }};
-        const getDocument = await TaskModel.findOne(query);
-        if (getDocument.deleted == false) {
-            await TaskModel.updateOne(query, update);
-            res.send('Done');
+        let result = await repoUpdate.updateTaskTitle(req.params.id, req.body.task);
+        if(result == true) {
+            res.send("Task name updated.");
         } else {
-            res.send('Task is deleted');
+            res.send("Task deleted.");
         }
     } catch(err) {
         console.log(err);
-        res.redirect("/read");
+        res.send("Task not found.");
     }
 }
 
 async function workers(req, res) {
     try {
-        let query = { _id: req.params.id };
-        let update = { $addToSet: { responsibleWorkers: { $each: req.body.workers }}, $set: { updated_at: Date.now() }};
-        const getDocument = await TaskModel.findOne(query);
-        if (getDocument.deleted == false) {
-            await TaskModel.updateOne(query, update);
-            const getNumberOfWorkers = await TaskModel.findOne(query);
-            update = { $set: { countWorkers: getNumberOfWorkers.responsibleWorkers.length }};
-            await TaskModel.updateOne(query, update);
-            res.send('Done');
+        let result = await repoUpdate.addNewWorkers(req.params.id, req.body.workers);
+        if(result == true) {
+            res.send("Worker added.");
         } else {
-            res.send('Task is deleted');
+            res.end("Task is deleted.");
         }
     } catch(err) {
         console.log(err);
@@ -39,8 +31,7 @@ async function workers(req, res) {
 
 async function workersV2(req, res) {
     try {
-        let query = { _id: req.params.id };
-        const getDocument = await TaskModel.findOne(query);
+        const getDocument = await repoFind.getById(req.params.id);
         if (getDocument.deleted == false) {
             getDocument.addWorker(req.body.workers);
             getDocument.save();
@@ -56,18 +47,11 @@ async function workersV2(req, res) {
 
 async function tags(req, res) {
     try {
-        let update = { $addToSet: { tags: { difficulty: req.body.diff }}, $set: { updated_at: Date.now() }};
-        let query = { _id: req.params.id, 'tags.difficulty': { $ne: req.body.diff }};
-        const getDocument = await TaskModel.findOne(query);
-        if (getDocument.deleted == false) {
-            await TaskModel.updateOne(query, update);
-            query = { _id: req.params.id };
-            const getTagsLength = await TaskModel.findOne(query);
-            update = { $set: { tagsCount: getTagsLength.tags.length }};
-            await TaskModel.updateOne(query, update);
-            res.send('Done');
+        let result = await repoUpdate.addNewTag(req.params.id, req.body.diff);
+        if (result == true) {
+            res.send("Tag added.");
         } else {
-            res.send('Task is deleted');
+            res.send("Task is deleted.");
         }
     } catch(err) {
         console.log(err);
@@ -77,8 +61,7 @@ async function tags(req, res) {
 
 async function tagsV2(req, res) {
     try {
-        let query = { _id: req.params.id };
-        const getDocument = await TaskModel.findOne(query);
+        const getDocument = await repoFind.getById(req.params.id);
         if (getDocument.deleted == false) {
             getDocument.addTag(req.body.diff);
             getDocument.save();
@@ -94,14 +77,11 @@ async function tagsV2(req, res) {
 
 async function markTaskAsDone(req, res) {
     try {
-        let query = { _id: req.params.id };
-        let update = { $set: { isDone: true, updated_at: Date.now() }};
-        const getDocument = await TaskModel.findOne(query);
-        if (getDocument.deleted == false) {
-            await TaskModel.updateOne(query, update);
-            res.send('Done');
+        let result = await repoUpdate.markTaskAsDone(req.params.id);
+        if (result == true) {
+            res.send("Done.");
         } else {
-            res.send('Task is deleted');
+            res.send("Task is deleted.");
         }
     } catch(err) {
         console.log(err);
@@ -111,14 +91,11 @@ async function markTaskAsDone(req, res) {
 
 async function markAsDeleted(req, res) {
     try {
-        let query = { _id: req.params.id };
-        let update = { $set: { deleted: true, deleted_at: Date.now() }};
-        const getDocument = await TaskModel.findOne(query);
-        if (getDocument.deleted == false) {
-            await TaskModel.updateOne(query, update);
-            res.send('Deleted');
+        let result = await repoUpdate.markTaskAsDeleted(req.params.id);
+        if(result == true) {
+            res.send("Done");
         } else {
-            res.send('Already deleted.');
+            res.send("Already deleted.")
         }
     } catch (err) {
         console.log(err);

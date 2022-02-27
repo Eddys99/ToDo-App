@@ -1,18 +1,8 @@
-const TaskModel = require("../models/taskSchema");
+const repoCreate = require("../repository/create");
 
 async function task(req, res) {
     try {
-        let workersCounter = req.body.workers.length;
-        const createTask = new TaskModel({
-            task: req.body.task,
-            responsibleWorkers: req.body.workers,
-            tags: [{
-                difficulty: req.body.difficulty
-            }],
-            countWorkers: workersCounter,
-            countWorkersV2: workersCounter
-        });
-        await createTask.save();
+        await repoCreate.createTask(req.body.task, req.body.workers, req.body.workers.length, req.body.difficulty);
         res.redirect("/read");
     } catch(err) {
         console.log(err);

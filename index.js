@@ -1,4 +1,4 @@
-require('./database/db_connection');
+require('./src/database/db_connection');
 const express = require('express');
 const bodyParser = require('body-parser');
 

@@ -1,8 +1,10 @@
-const TaskModel = require("../models/taskSchema");
+const repoAggregate = require("../repository/aggregate");
+const repoCount = require("../repository/count");
+const repoFind = require("../repository/find");
 
 async function tasks(req, res) {
     try {
-        const tasks = await TaskModel.find();
+        const tasks = await repoFind.getAllTasks();
         res.send(tasks);
     } catch(err) {
         console.log(err);
@@ -12,8 +14,7 @@ async function tasks(req, res) {
 
 async function taskById(req, res) {
     try {
-        let query = { _id: req.params.id };
-        const task = await TaskModel.findOne(query);
+        const task = await repoFind.getById(req.params.id);
         res.send(task);
     } catch(err) {
         console.log(err);
@@ -23,8 +24,7 @@ async function taskById(req, res) {
 
 async function completedTasks(req, res) {
     try {
-        let query = { isDone: true };
-        const completedTasks = await TaskModel.find(query);
+        const completedTasks = await repoFind.getDoneTasks();
         res.send(completedTasks);
     } catch(err) {
         console.log(err);
@@ -34,8 +34,7 @@ async function completedTasks(req, res) {
 
 async function unfinishedTasks(req, res) {
     try {
-        let query = { isDone: false};
-        const unfinishedTasks = await TaskModel.find(query);
+        const unfinishedTasks = await repoFind.getUndoneTasks();
         res.send(unfinishedTasks);
     } catch(err) {
         console.log(err);
@@ -45,8 +44,7 @@ async function unfinishedTasks(req, res) {
 
 async function availableTasks(req, res) {
     try {
-        let query = { deleted: false };
-        const availableTasks = await TaskModel.find(query);
+        const availableTasks = await repoFind.getAvailableTasks();
         res.send(availableTasks);
     } catch(err) {
         console.log(err);
@@ -56,8 +54,7 @@ async function availableTasks(req, res) {
 
 async function mostAssignedWorkers(req, res) {
     try {
-        let sortQuery = { countWorkers: -1};
-        const mostAssignedWorkersTask = await TaskModel.find().sort(sortQuery).limit(1);
+        const mostAssignedWorkersTask = await repoFind.getMostAssignedWorkersTask();
         res.send(mostAssignedWorkersTask);
     } catch(err) {
         console.log(err);
@@ -67,8 +64,7 @@ async function mostAssignedWorkers(req, res) {
 
 async function mostAssignedTags(req, res) {
     try {
-        let sortQuery = { tagsCount: -1};
-        const mostAssignedWorkersTask = await TaskModel.find().sort(sortQuery).limit(1);
+        const mostAssignedWorkersTask = await repoFind.getMostAssignedTagsTask();
         res.send(mostAssignedWorkersTask);
     } catch(err) {
         console.log(err);
@@ -78,12 +74,8 @@ async function mostAssignedTags(req, res) {
 
 async function mostAssignedWorkersV2(req, res) {
     try {
-        const mostAssignedWorkersTask = await TaskModel.aggregate([
-            { $unwind : "$responsibleWorkers" },
-            { $group : { _id : "$_id", len : { $sum : 1 } } },
-            { $sort : { len : -1 } },
-        ]);
-        res.redirect("/read/" + mostAssignedWorkersTask[0]._id);
+        const document = await repoAggregate.mostWorkers();
+        res.redirect("/read/get-this-task/" + document);
     } catch(err) {
         console.log(err);
         res.send("No tasks.");
@@ -92,12 +84,8 @@ async function mostAssignedWorkersV2(req, res) {
 
 async function mostAssignedTagsV2(req, res) {
     try {
-        const mostAssignetTags = await TaskModel.aggregate([
-            { $unwind : "$tags" },
-            { $group : { _id : "$_id", len : { $sum : 1 } } },
-            { $sort : { len : -1 } },
-        ]);
-        res.redirect("/read/" + mostAssignetTags[0]._id);
+        const document = await repoAggregate.mostTags();
+        res.redirect("/read/get-this-task/" + document);
     } catch(err) {
         console.log(err);
         res.send("No tasks.");
@@ -106,8 +94,7 @@ async function mostAssignedTagsV2(req, res) {
 
 async function oneWorkerTasks(req, res) {
     try {
-        let query = { responsibleWorkers: { $size: 1 }};
-        const getOneWorkerTasks = await TaskModel.find(query);
+        const getOneWorkerTasks = await repoFind.getOneWorkerTasks();
         res.send(getOneWorkerTasks);
     } catch(err) {
         console.log(err);
@@ -117,8 +104,7 @@ async function oneWorkerTasks(req, res) {
 
 async function multipleWorkersTasks(req, res) {
     try {
-        let query = { 'responsibleWorkers.1': { $exists: true }};
-        const getMultipleWorkersTasks = await TaskModel.find(query);
+        const getMultipleWorkersTasks = await repoFind.getMultipleWorkersTasks();
         res.send(getMultipleWorkersTasks);
     } catch(err) {
         console.log(err);
@@ -128,8 +114,7 @@ async function multipleWorkersTasks(req, res) {
 
 async function oneTagTasks(req, res) {
     try {
-        let query = { tags: { $size: 1 }};
-        const getOneTagTasks = await TaskModel.find(query);
+        const getOneTagTasks = await repoFind.getOneTagTasks();
         res.send(getOneTagTasks);
     } catch(err) {
         console.log(err);
@@ -139,8 +124,7 @@ async function oneTagTasks(req, res) {
 
 async function multipleTagTasks(req, res) {
     try {
-        let query = { 'tags.1': { $exists: true }};
-        const getMultipleTagsTasks = await TaskModel.find(query);
+        const getMultipleTagsTasks = await repoFind.getMultipleTagsTasks();
         res.send(getMultipleTagsTasks);
     } catch(err) {
         console.log(err);
@@ -150,8 +134,7 @@ async function multipleTagTasks(req, res) {
 
 async function countCompletedTasks(req, res) {
     try {
-        let filter = { isDone: true };
-        const numberOfCompletedTasks = await TaskModel.where(filter).count();
+        const numberOfCompletedTasks = await repoCount.countDoneTasks();
         res.send("Completed tasks: " + numberOfCompletedTasks);
     } catch(err) {
         console.log(err);
@@ -161,8 +144,7 @@ async function countCompletedTasks(req, res) {
 
 async function countUnfinishedTasks(req, res) {
     try {
-        let filter = { isDone: false };
-        const numberOfUnfinishedTasks = await TaskModel.where(filter).count();
+        const numberOfUnfinishedTasks = await repoCount.countUndoneTasks();
         res.send("Unfinished tasks: " + numberOfUnfinishedTasks);
     } catch(err) {
         console.log(err);
@@ -172,8 +154,7 @@ async function countUnfinishedTasks(req, res) {
 
 async function countTasksWithWorkers(req, res) {
     try {
-        let filter = { 'responsibleWorkers.0': { $exists: true }};
-        const numberOfTasksWithWorkers = await TaskModel.where(filter).count();
+        const numberOfTasksWithWorkers = await repoCount.countTasksWithWorkers();
         res.send("Tasks that have workers: " + numberOfTasksWithWorkers);
     } catch(err) {
         console.log(err);
@@ -183,8 +164,7 @@ async function countTasksWithWorkers(req, res) {
 
 async function countTasksWithoutWorkers(req, res) {
     try {
-        let filter = { responsibleWorkers: { $size: 0 }};
-        const numberOfTasksWithoutWorkers = await TaskModel.where(filter).count();
+        const numberOfTasksWithoutWorkers = await repoCount.countTasksWithoutWorkers();
         res.send("Tasks that have no workers: " + numberOfTasksWithoutWorkers);
     } catch(err) {
         console.log(err);
@@ -194,8 +174,7 @@ async function countTasksWithoutWorkers(req, res) {
 
 async function countTasksWithTags(req, res) {
     try {
-        let filter = { 'tags.0': { $exists: true }};
-        const numberOfTasksWithTags = await TaskModel.where(filter).count();
+        const numberOfTasksWithTags = await repoCount.countTasksWithTags();
         res.send("Tasks with tags: " + numberOfTasksWithTags);
     } catch(err) {
         console.log(err);
@@ -205,8 +184,7 @@ async function countTasksWithTags(req, res) {
 
 async function countTasksWithoutTags(req, res) {
     try {
-        let filter = { tags: { $size: 0 }};
-        const numberOfTasksWithoutTags = await TaskModel.where(filter).count();
+        const numberOfTasksWithoutTags = await repoCount.countTasksWithoutTags();
         res.send("Tasks with tags: " + numberOfTasksWithoutTags);
     } catch(err) {
         console.log(err);
@@ -216,8 +194,7 @@ async function countTasksWithoutTags(req, res) {
 
 async function countCompletedTasksV2(req, res) {
     try {
-        let filter = { isDone: true };
-        const numberOfCompletedTasks = await TaskModel.where(filter).countDocuments();
+        const numberOfCompletedTasks = await repoCount.countDoneTasksV2;
         res.send("Completed tasks: " + numberOfCompletedTasks);
     } catch(err) {
         console.log(err);
@@ -227,8 +204,7 @@ async function countCompletedTasksV2(req, res) {
 
 async function countUnfinishedTasksV2(req, res) {
     try {
-        let filter = { isDone: false };
-        const numberOfUnfinishedTasks = await TaskModel.where(filter).countDocuments();
+        const numberOfUnfinishedTasks = await repoCount.countUndoneTasksV2();
         res.send("Unfinished tasks: " + numberOfUnfinishedTasks);
     } catch(err) {
         console.log(err);
@@ -238,8 +214,7 @@ async function countUnfinishedTasksV2(req, res) {
 
 async function countTasksWithWorkersV2(req, res) {
     try {
-        let filter = { 'responsibleWorkers.0': { $exists: true }};
-        const numberOfTasksWithWorkers = await TaskModel.where(filter).countDocuments();
+        const numberOfTasksWithWorkers = await repoCount.countTasksWithWorkersV2();
         res.send("Tasks that have workers: " + numberOfTasksWithWorkers);
     } catch(err) {
         console.log(err);
@@ -249,8 +224,7 @@ async function countTasksWithWorkersV2(req, res) {
 
 async function countTasksWithoutWorkersV2(req, res) {
     try {
-        let filter = { responsibleWorkers: { $size: 0 }};
-        const numberOfTasksWithoutWorkers = await TaskModel.where(filter).countDocuments();
+        const numberOfTasksWithoutWorkers = await repoCount.countTasksWithoutWorkersV2();
         res.send("Tasks that have no workers: " + numberOfTasksWithoutWorkers);
     } catch(err) {
         console.log(err);
@@ -260,8 +234,7 @@ async function countTasksWithoutWorkersV2(req, res) {
 
 async function countTasksWithTagsV2(req, res) {
     try {
-        let filter = { 'tags.0': { $exists: true }};
-        const numberOfTasksWithTags = await TaskModel.where(filter).countDocuments();
+        const numberOfTasksWithTags = await repoCount.countTasksWithTagsV2();
         res.send("Tasks with tags: " + numberOfTasksWithTags);
     } catch(err) {
         console.log(err);
@@ -271,8 +244,7 @@ async function countTasksWithTagsV2(req, res) {
 
 async function countTasksWithoutTagsV2(req, res) {
     try {
-        let filter = { tags: { $size: 0 }};
-        const numberOfTasksWithoutTags = await TaskModel.where(filter).countDocuments();
+        const numberOfTasksWithoutTags = await repoCount.countTasksWithoutTagsV2();
         res.send("Tasks with tags: " + numberOfTasksWithoutTags);
     } catch(err) {
         console.log(err);
@@ -282,8 +254,7 @@ async function countTasksWithoutTagsV2(req, res) {
 
 async function sortAscByNumberOfWorkers(req, res) {
     try {
-        let query = { countWorkers: 1 };
-        const getSortedTasks = await TaskModel.find().sort(query);
+        const getSortedTasks = await repoFind.getSortAscByNumberOfWorkers();
         res.send(getSortedTasks);
     } catch(err) {
         console.log(err);
@@ -293,8 +264,7 @@ async function sortAscByNumberOfWorkers(req, res) {
 
 async function sortDescByNumberOfWorkers(req, res) {
     try {
-        let query = { countWorkers: -1 };
-        const getSortedTasks = await TaskModel.find().sort(query);
+        const getSortedTasks = await repoFind.getSortDescByNumberOfWorkers();
         res.send(getSortedTasks);
     } catch(err) {
         console.log(err);
@@ -304,8 +274,7 @@ async function sortDescByNumberOfWorkers(req, res) {
 
 async function sortAscByNumberOfTags(req, res) {
     try {
-        let query = { tagsCount: 1 };
-        const getSortedTasks = await TaskModel.find().sort(query);
+        const getSortedTasks = await repoFind.getSortAscByNumberOfTags();
         res.send(getSortedTasks);
     } catch(err) {
         console.log(err);
@@ -315,8 +284,7 @@ async function sortAscByNumberOfTags(req, res) {
 
 async function sortDescByNumberOfTags(req, res) {
     try {
-        let query = { tagsCount: -1 };
-        const getSortedTasks = await TaskModel.find().sort(query);
+        const getSortedTasks = await repoFind.getSortDescByNumberOfTags();
         res.send(getSortedTasks);
     } catch(err) {
         console.log(err);

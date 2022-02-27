@@ -1,34 +1,29 @@
-const TaskModel = require("../models/taskSchema");
+const repoDelete = require("../repository/delete");
+const repoFind = require("../repository/find");
 
 async function task(req, res) {
     try {
-        await TaskModel.findByIdAndDelete(req.params.id);
-        res.redirect("/read");
+        await repoDelete.deleteTask(req.params.id);
+        res.send("Task deleted.");
     } catch(err) {
         console.log(err);
-        res.redirect("/read");
+        res.send("Task not found.");
     }
 }
 
 async function workers(req, res) {
     try {
-        let query = { _id: req.params.id };
-        let update = { $pull: { responsibleWorkers: req.body.worker }};
-        await TaskModel.updateOne(query, update);
-        const getResWorkersNumber = await TaskModel.findOne(query);
-        update = { $set: { countWorkers: getResWorkersNumber.responsibleWorkers.length }};
-        await TaskModel.updateOne(query, update);
-        res.redirect("/read");
+        await repoDelete.removeWorker(req.params.id, req.body.worker);
+        res.redirect("Worker removed.");
     } catch(err) {
         console.log(err);
-        res.redirect("/read");
+        res.redirect("Worker not found.");
     }
 }
 
 async function workersV2(req, res) {
     try {
-        let query = { _id: req.params.id };
-        const getDocument = await TaskModel.findOne(query);
+        const getDocument = await repoFind.getById(req.params.id);
         getDocument.removeWorker(req.body.worker);
         getDocument.save();
         res.redirect("/read");
@@ -40,23 +35,17 @@ async function workersV2(req, res) {
 
 async function tags(req, res) {
     try {
-        let query = { _id: req.params.id };
-        let update = { $pull: { tags: { difficulty: req.body.diff }}};
-        await TaskModel.updateOne(query, update);
-        const getTagsLength = await TaskModel.findOne(query);
-        update = { $set: { tagsCount: getTagsLength.tags.length }};
-        await TaskModel.updateOne(query, update);
-        res.redirect("/read");
+        await repoDelete.removeTag(req.params.id, req,body.diff);
+        res.redirect("Tag removed.");
     } catch(err) {
         console.log(err);
-        res.redirect("/read");
+        res.redirect("Tag not found.");
     }
 }
 
 async function tagsV2(req, res) {
     try {
-        let query = { _id: req.params.id };
-        const getDocument = await TaskModel.findOne(query);
+        const getDocument = await repoFind.getById(req.params.id);
         getDocument.removeTag(req.body.diff);
         getDocument.save();
         res.redirect("/read");
